@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_margin="4dp"
+    android:background="@drawable/item_background"
+    android:padding="16dp">
+
+    <!-- Employee Name and Position -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/nameTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Employee Name"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#2c3e50" />
+
+        <TextView
+            android:id="@+id/workDaysTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="22 ditë"
+            android:textSize="14sp"
+            android:textColor="#27ae60"
+            android:background="@drawable/badge_background"
+            android:padding="4dp" />
+
+    </LinearLayout>
+
+    <!-- Position -->
+    <TextView
+        android:id="@+id/positionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Position"
+        android:textSize="14sp"
+        android:textColor="#7f8c8d"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Work Dates Input -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Datat e shërbimit:"
+            android:textSize="14sp"
+            android:textColor="#34495e"
+            android:layout_marginEnd="8dp" />
+
+        <EditText
+            android:id="@+id/datesEditText"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:hint="p.sh: 1,5,8,12,15,20,24,28"
+            android:textSize="14sp"
+            android:textColor="#2c3e50"
+            android:background="@drawable/edittext_background"
+            android:padding="8dp"
+            android:inputType="text" />
+
+    </LinearLayout>
+
+</LinearLayout>

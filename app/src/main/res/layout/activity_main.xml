@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#f5f5f5">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Editor Kohëshënuesi MZSH"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#2c3e50"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Month and Year Selection -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/card_background"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Muaji:"
+            android:textSize="16sp"
+            android:textColor="#34495e"
+            android:layout_marginEnd="8dp"
+            android:layout_gravity="center_vertical" />
+
+        <Spinner
+            android:id="@+id/monthSpinner"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/spinner_background" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Viti:"
+            android:textSize="16sp"
+            android:textColor="#34495e"
+            android:layout_marginEnd="8dp"
+            android:layout_gravity="center_vertical" />
+
+        <EditText
+            android:id="@+id/yearEditText"
+            android:layout_width="80dp"
+            android:layout_height="48dp"
+            android:inputType="number"
+            android:textSize="16sp"
+            android:textColor="#2c3e50"
+            android:background="@drawable/edittext_background"
+            android:gravity="center"
+            android:maxLength="4" />
+
+    </LinearLayout>
+
+    <!-- Document Actions -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/loadDocButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="Ngarko Dokumentin"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_primary"
+            android:layout_marginEnd="8dp"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/saveDocButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="Ruaj Dokumentin"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_secondary"
+            android:layout_marginStart="8dp"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Employee List Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lista e Punonjësve"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#2c3e50"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Employee List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/employeeRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/card_background"
+        android:padding="8dp" />
+
+</LinearLayout>

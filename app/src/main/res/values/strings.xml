@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Word Doc Editor</string>
+    <string name="load_document">Ngarko Dokumentin</string>
+    <string name="save_document">Ruaj Dokumentin</string>
+    <string name="employee_list">Lista e Punonjësve</string>
+    <string name="work_dates">Datat e shërbimit</string>
+    <string name="month">Muaji</string>
+    <string name="year">Viti</string>
+    <string name="days">ditë</string>
+</resources>
