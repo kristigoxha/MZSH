@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,9 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.apache.poi.xwpf.usermodel.XWPFDocument
-import org.apache.poi.xwpf.usermodel.XWPFTable
 import java.io.*
-import java.text.SimpleDateFormat
 import java.util.*
 
 data class Employee(
@@ -112,10 +111,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        val permissions = arrayOf(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+        // Android 11+ requires MANAGE_EXTERNAL_STORAGE for broad access
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Using Storage Access Framework (SAF) - no special permissions needed
+            return
+        }
+        
+        // For Android 10 and below
+        val permissions = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
 
         val permissionsToRequest = permissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
@@ -130,6 +137,7 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         documentPickerLauncher.launch(intent)
     }
@@ -137,11 +145,14 @@ class MainActivity : AppCompatActivity() {
     private fun loadDocument(uri: Uri) {
         try {
             contentResolver.openInputStream(uri)?.use { inputStream ->
-                originalDocument = XWPFDocument(inputStream)
+                // Create a copy to avoid stream closure issues
+                val byteArray = inputStream.readBytes()
+                originalDocument = XWPFDocument(ByteArrayInputStream(byteArray))
                 parseDocument(originalDocument!!)
                 Toast.makeText(this, "Dokumenti u ngarkua me sukses", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             Toast.makeText(this, "Gabim në ngarkimin e dokumentit: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
@@ -149,9 +160,14 @@ class MainActivity : AppCompatActivity() {
     private fun parseDocument(document: XWPFDocument) {
         employees.clear()
 
-        // Find the table in the document
-        val tables = document.tables
-        if (tables.isNotEmpty()) {
+        try {
+            // Find the table in the document
+            val tables = document.tables
+            if (tables.isEmpty()) {
+                Toast.makeText(this, "Nuk u gjet tabela në dokument", Toast.LENGTH_SHORT).show()
+                return
+            }
+
             val table = tables[0] // Assuming the first table is our target
 
             // Skip header row (index 0) and start from row 1
@@ -160,26 +176,31 @@ class MainActivity : AppCompatActivity() {
                 if (row.tableCells.size >= 9) {
                     try {
                         val employee = Employee(
-                            id = row.getCell(0).text.toIntOrNull() ?: i,
-                            name = row.getCell(1).text,
-                            position = row.getCell(2).text,
-                            grade = row.getCell(3).text,
-                            years = row.getCell(4).text.toIntOrNull() ?: 0,
-                            hireDate = row.getCell(5).text,
-                            workDates = row.getCell(6).text,
-                            workDays = row.getCell(7).text.toIntOrNull() ?: 0,
-                            overtime = row.getCell(8).text
+                            id = row.getCell(0).text.trim().toIntOrNull() ?: i,
+                            name = row.getCell(1).text.trim(),
+                            position = row.getCell(2).text.trim(),
+                            grade = row.getCell(3).text.trim(),
+                            years = row.getCell(4).text.trim().toIntOrNull() ?: 0,
+                            hireDate = row.getCell(5).text.trim(),
+                            workDates = row.getCell(6).text.trim(),
+                            workDays = row.getCell(7).text.trim().toIntOrNull() ?: 0,
+                            overtime = row.getCell(8).text.trim()
                         )
                         employees.add(employee)
                     } catch (e: Exception) {
                         // Skip malformed rows
+                        e.printStackTrace()
                         continue
                     }
                 }
             }
-        }
 
-        employeeAdapter.notifyDataSetChanged()
+            employeeAdapter.notifyDataSetChanged()
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Gabim në leximin e tabelës: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun updateEmployeeDates(employee: Employee, newDates: String) {
@@ -200,14 +221,23 @@ class MainActivity : AppCompatActivity() {
             type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             val month = monthSpinner.selectedItem.toString()
             val year = yearEditText.text.toString()
-            putExtra(Intent.EXTRA_TITLE, "Kohëshënuesi $month $year.docx")
+            putExtra(Intent.EXTRA_TITLE, "Kohëshënuesi_${month}_${year}.docx")
+            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         }
         documentSaveLauncher.launch(intent)
     }
 
     private fun saveDocument(uri: Uri) {
         try {
-            val document = XWPFDocument(originalDocument!!.packagePart.inputStream)
+            if (originalDocument == null) {
+                Toast.makeText(this, "Dokumenti origjinal mungon", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Create a new document from the original
+            val tempBytes = ByteArrayOutputStream()
+            originalDocument!!.write(tempBytes)
+            val document = XWPFDocument(ByteArrayInputStream(tempBytes.toByteArray()))
 
             // Update document title
             val month = monthSpinner.selectedItem.toString()
@@ -219,36 +249,42 @@ class MainActivity : AppCompatActivity() {
             // Update table data
             updateTableData(document)
 
+            // Save to file
             contentResolver.openOutputStream(uri)?.use { outputStream ->
                 document.write(outputStream)
                 document.close()
                 Toast.makeText(this, "Dokumenti u ruajt me sukses", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             Toast.makeText(this, "Gabim në ruajtjen e dokumentit: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun updateDocumentHeader(document: XWPFDocument, month: String, year: String) {
-        // Update paragraphs that contain the month/year info
-        for (paragraph in document.paragraphs) {
-            val text = paragraph.text
-            if (text.contains("muajin")) {
-                // Replace the month in the title
-                val runs = paragraph.runs
-                for (run in runs) {
-                    val runText = run.text()
-                    if (runText != null && runText.contains("muajin")) {
-                        run.setText("Kohëshënuesi i MZSH-së Memaliaj për muajin $month $year", 0)
+        try {
+            // Update paragraphs that contain the month/year info
+            for (paragraph in document.paragraphs) {
+                val text = paragraph.text
+                if (text.contains("muajin", ignoreCase = true)) {
+                    // Clear existing runs and create new one
+                    while (paragraph.runs.isNotEmpty()) {
+                        paragraph.removeRun(0)
                     }
+                    val run = paragraph.createRun()
+                    run.setText("Kohëshënuesi i MZSH-së Memaliaj për muajin $month $year")
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     private fun updateTableData(document: XWPFDocument) {
-        val tables = document.tables
-        if (tables.isNotEmpty()) {
+        try {
+            val tables = document.tables
+            if (tables.isEmpty()) return
+
             val table = tables[0]
 
             // Update table rows with new data
@@ -259,15 +295,38 @@ class MainActivity : AppCompatActivity() {
 
                     // Update the work dates column (index 6)
                     if (row.tableCells.size > 6) {
-                        row.getCell(6).text = employee.workDates
+                        val cell = row.getCell(6)
+                        // Clear existing content
+                        while (cell.paragraphs.size > 1) {
+                            cell.removeParagraph(1)
+                        }
+                        if (cell.paragraphs.isNotEmpty()) {
+                            val paragraph = cell.paragraphs[0]
+                            while (paragraph.runs.isNotEmpty()) {
+                                paragraph.removeRun(0)
+                            }
+                            val run = paragraph.createRun()
+                            run.setText(employee.workDates)
+                        }
                     }
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            originalDocument?.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
 
-// EmployeeAdapter.kt
+// EmployeeAdapter
 class EmployeeAdapter(
     private val employees: List<Employee>,
     private val onDatesChanged: (Employee, String) -> Unit
@@ -294,10 +353,13 @@ class EmployeeAdapter(
         holder.datesEditText.setText(employee.workDates)
         holder.workDaysTextView.text = "${employee.workDays} ditë"
 
+        // Update on focus loss
         holder.datesEditText.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val newDates = holder.datesEditText.text.toString()
-                onDatesChanged(employee, newDates)
+                if (newDates != employee.workDates) {
+                    onDatesChanged(employee, newDates)
+                }
             }
         }
     }
