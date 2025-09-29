@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-	id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -46,7 +46,8 @@ android {
         jvmTarget = "1.8"
     }
 
-    packagingOptions {
+    // FIXED: Changed from packagingOptions to packaging
+    packaging {
         resources {
             excludes += setOf(
                 "META-INF/DEPENDENCIES",
@@ -67,8 +68,8 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
-	implementation("org.apache.poi:poi:5.2.4")
-	implementation("org.apache.poi:poi-ooxml:5.2.4")
+    implementation("org.apache.poi:poi:5.2.4")
+    implementation("org.apache.poi:poi-ooxml:5.2.4")
 
     // Jetpack Compose
     implementation("androidx.activity:activity-compose:1.9.0")
@@ -77,10 +78,6 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.1")
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.7")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.7")
-
-    // Apache POI (uncomment when ready)
-    // implementation("org.apache.poi:poi:5.2.4")
-    // implementation("org.apache.poi:poi-ooxml:5.2.4")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
